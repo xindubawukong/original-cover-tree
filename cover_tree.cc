@@ -2,6 +2,8 @@
 #include <limits.h>
 #include <values.h>
 #include <stdint.h>
+#include <iostream>
+using namespace std;
 
 struct ds_node {
   v_array<float> dist;
@@ -131,7 +133,7 @@ node batch_insert(const point& p,
   else {
     float max_dist = max_set(point_set); //O(|point_set|)
     int next_scale = min (max_scale - 1, get_scale(max_dist));
-    if (next_scale == -2147483647-1) // We have points with distance 0.
+    if (top_scale - next_scale == 100) // We have points with distance 0.
       {
 	v_array<node> children;
 	push(children,new_leaf(p));
@@ -555,22 +557,24 @@ inline void descend(const node* query, float* upper_bound,
     {
       const node *par = parent->n;
       float upper_dist = *upper_bound + query->max_dist + query->max_dist;
-      if (parent->dist <= upper_dist + par->max_dist)
+      if (parent->dist <= upper_dist + par->max_dist && par->children)
 	{
 	  node *chi = par->children;
 	  if (parent->dist <= upper_dist + chi->max_dist)
-	    if (chi->num_children > 0)
-	      {
-		if (max_scale < chi->scale)
-		  max_scale = chi->scale;
-		d_node temp = {parent->dist, chi};
-		push(cover_sets[chi->scale], temp);
-	      }
-	    else if (parent->dist <= upper_dist)
-	      {
-		d_node temp = {parent->dist, chi};
-		push(zero_set, temp);
-	      }
+	    {
+	      if (chi->num_children > 0)
+		{
+		  if (max_scale < chi->scale)
+		    max_scale = chi->scale;
+		  d_node temp = {parent->dist, chi};
+		  push(cover_sets[chi->scale], temp);
+		}
+	      else if (parent->dist <= upper_dist)
+		{
+		  d_node temp = {parent->dist, chi};
+		  push(zero_set, temp);
+		}
+	    }
 	  node *child_end = par->children + par->num_children;
 	  for (chi++; chi != child_end; chi++)
 	    {
@@ -702,7 +706,6 @@ void batch_nearest_neighbor(const node &top_node, const node &query,
   
   float top_dist = distance(query.p, top_node.p, MAXFLOAT);
   update(upper_bound, top_dist);
-  
   d_node temp = {top_dist, &top_node};
   push(cover_sets[0], temp);
   

@@ -2,9 +2,10 @@
 #include <limits.h>
 #include <values.h>
 #include <stdint.h>
-
+#include <iostream>
 #include <time.h>
 #include <sys/time.h>
+using namespace std;
 
 float diff_timeval(timeval t1, timeval t2)
 {
@@ -27,11 +28,17 @@ int compare(const void* p1, const void* p2)
 int main(int argc, char *argv[])
 {
   timeval start;
-  clock_t start_clock = clock();
+  //  clock_t start_clock = clock();
   gettimeofday(&start, NULL);
   //v_array<point> v = make_same(10000);  
+  if (argc <2 )
+    {
+      cout << "usage: test_nn <k> <dataset>" << endl;
+      exit(1);
+    }
   int k = atoi(argv[1]);
-  v_array<point> v = parse_points(fopen(argv[2],"r"));
+  FILE* fd = fopen(argv[2],"r");
+  v_array<point> v = parse_points(fd);
   //printf("point length = %i\n",v[0].index);
   //printf("first point = \n");
   //print(v.elements[0]);
@@ -43,7 +50,7 @@ int main(int argc, char *argv[])
 
   node top = batch_create(v);
   timeval created;
-  clock_t created_clock = clock();
+  //  clock_t created_clock = clock();
   gettimeofday(&created, NULL);
   //printf("created in %f seconds\n",diff(created,parsed));
   
@@ -120,7 +127,7 @@ int main(int argc, char *argv[])
     for (int j=0; j<k; j++)
       {
 	upper_dist[j] = MAXFLOAT;
-	min_points[k] = this_point;
+	min_points[j] = this_point;
       }
     for (int j=0; j < v.index; j++) {
       float dist = distance (this_point, v[j], upper_dist[0]);

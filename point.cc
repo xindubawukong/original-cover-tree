@@ -3,6 +3,8 @@
 #include<assert.h>
 #include<math.h>
 #include <string.h>
+#include <iostream>
+using namespace std;
 
 //typedef float v4sf __attribute__ ((mode(V4SF)));
 

@@ -133,7 +133,7 @@ node batch_insert(const point& p,
   else {
     float max_dist = max_set(point_set); //O(|point_set|)
     int next_scale = min (max_scale - 1, get_scale(max_dist));
-    if (top_scale - next_scale == 100) // We have points with distance 0.
+    if (next_scale < -100) // We have points with distance 0.
       {
 	v_array<node> children;
 	push(children,new_leaf(p));

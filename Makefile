@@ -1,4 +1,4 @@
-CFLAGS=-O3 -ffast-math -funroll-loops -static # -msse -march=athlon 
+CFLAGS=-O3 -ffast-math -funroll-loops -static #-msse -march=athlon 
 
 all:	test_nn knn
 

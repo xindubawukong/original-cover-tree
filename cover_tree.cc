@@ -453,7 +453,7 @@ inline void copy_zero_set(node* query_chi, float* new_upper_bound,
   d_node *end = zero_set.elements + zero_set.index;
   for (d_node *ele = zero_set.elements; ele != end ; ele++)
     {
-      float upper_dist = *new_upper_bound + query_chi->max_dist;
+      float upper_dist = *new_upper_bound + 2. * query_chi->max_dist;
       if (shell(ele->dist, query_chi->parent_dist, upper_dist))
 	{
 	  float d = distance(query_chi->p, ele->n->p, upper_dist);
@@ -480,7 +480,7 @@ inline void copy_cover_sets(node* query_chi, float* new_upper_bound,
       d_node* end = cover_sets[current_scale].elements + cover_sets[current_scale].index;
       for (; ele != end; ele++)
 	{ 
-	  float upper_dist = *new_upper_bound + query_chi->max_dist + ele->n->max_dist;
+	  float upper_dist = *new_upper_bound + 2. *query_chi->max_dist + ele->n->max_dist;
 	  if (shell(ele->dist, query_chi->parent_dist, upper_dist))
 	    {
 	      float d = distance(query_chi->p, ele->n->p, upper_dist);

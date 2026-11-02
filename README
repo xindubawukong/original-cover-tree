@@ -15,3 +15,31 @@ The code is licensed under the GPL.
 The file 'cover_tree.{cc,h}' contains the core cover tree computation code. 
 The file 'point.{cc,h}' contains the definition of a point as well as
 parsing and printing functions.
+
+
+Benchmark integration
+---------------------
+The original free functions and v_array layout are retained in namespace
+original_cover_tree. Points are caller-owned const void* values. Construction
+and queries accept a distance_function and optional context; use the same metric
+for both. The callback returns the exact distance when it is <= upper_bound,
+and may return any value > upper_bound otherwise. All distances/radii use double.
+Query parameters are local to each call, allowing concurrent read-only queries
+with thread-safe callbacks. Distance callbacks must not throw.
+
+Results keep the original layout: each row starts with its query pointer,
+followed by unsorted neighbor pointers; ties may return more than k neighbors.
+The caller supplies IDs, sorting, and k clamping (1 <= k <= reference size).
+Call free_tree(root) and free_results(results) to release their allocations;
+these functions do not free the input points. v_array remains a shallow-copy
+work array, so callers must not free copies of the same allocation twice.
+
+The original batch algorithm and base=1.3 are preserved. Zero-radius groups use
+exact zero distance; level work arrays grow as needed, and child counts use int.
+The standalone examples keep the original numeric format, padding and loops.
+
+CMake consumers can add_subdirectory this repository and link original_cover_tree.
+Standalone build and correctness tests:
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+  cmake --build build -j
+  ctest --test-dir build --output-on-failure

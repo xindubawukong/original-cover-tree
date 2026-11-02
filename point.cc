@@ -1,10 +1,11 @@
 #include "point.h"
-#define NDEBUG
 #include<assert.h>
 #include<math.h>
 #include <string.h>
 #include <iostream>
 using namespace std;
+
+namespace original_cover_tree {
 
 //typedef float v4sf __attribute__ ((mode(V4SF)));
 
@@ -13,17 +14,19 @@ const int batch = 120;//must be a multiple of 8
 int point_len = 0;
 
 //Assumption: points are a multiples of 8 long
-float distance(point p1, point p2, float upper_bound)
+double distance(point v1, point v2, double upper_bound, const void*)
 {
-  float sum = 0.;
-  float *end = p1 + point_len;
+  const double *p1 = static_cast<const double*>(v1);
+  const double *p2 = static_cast<const double*>(v2);
+  double sum = 0.;
+  const double *end = p1 + point_len;
   upper_bound *= upper_bound;
-  for (float *batch_end = p1 + batch; batch_end <= end; batch_end += batch)
+  for (const double *batch_end = p1 + batch; batch_end <= end; batch_end += batch)
     {
       for (; p1 != batch_end; p1+=2, p2+=2)
 	{
-	  float d1 = *p1 - *p2;
-	  float d2 = *(p1+1) - *(p2+1);
+	  double d1 = *p1 - *p2;
+	  double d2 = *(p1+1) - *(p2+1);
 	  d1 *= d1;
 	  d2 *= d2;
 	  sum = sum + d1 + d2;
@@ -33,8 +36,8 @@ float distance(point p1, point p2, float upper_bound)
     }
   for (; p1 != end; p1+=2, p2+=2)
 	{
-	  float d1 = *p1 - *p2;
-	  float d2 = *(p1+1) - *(p2+1);
+	  double d1 = *p1 - *p2;
+	  double d2 = *(p1+1) - *(p2+1);
 	  d1 *= d1;
 	  d2 *= d2;
 	  sum = sum + d1 + d2;
@@ -116,7 +119,7 @@ v_array<point > parse_points(FILE *input)
 {
   v_array<point > parsed;
   char c;
-  v_array<float> p;
+  v_array<double> p;
   while ( (c = getc(input)) != EOF )
     {
       ungetc(c,input);
@@ -129,8 +132,8 @@ v_array<point > parse_points(FILE *input)
 	    c = getc(input);
 	  if (c != '\n' && c != EOF) {
 	    ungetc(c,input);
-	    float f;
-	    fscanf(input, "%f",&f);
+	    double f;
+	    fscanf(input, "%lf",&f);
 	    push(p,f);
 	  }
 	  else 
@@ -140,10 +143,10 @@ v_array<point > parse_points(FILE *input)
 
       if (p.index %8 > 0)
 	for (int i = 8 - p.index %8; i> 0; i--)
-	  push(p,(float) 0.);
-      float *new_p;
-      posix_memalign((void **)&new_p, 16, p.index*sizeof(float));
-      memcpy(new_p,p.elements,sizeof(float)*p.index);
+	  push(p,(double) 0.);
+      double *new_p;
+      if (posix_memalign((void **)&new_p, 16, p.index*sizeof(double)) != 0) abort();
+      memcpy(new_p,p.elements,sizeof(double)*p.index);
 
       if (point_len > 0 && point_len != p.index)
 	{
@@ -153,14 +156,17 @@ v_array<point > parse_points(FILE *input)
 
       point_len = p.index;
       p.index = 0;
-      push(parsed,new_p);
+      push(parsed,(point)new_p);
     }
+  free(p.elements);
   return parsed;
 }
 
 void print(point &p)
 {
   for (int i = 0; i<point_len; i++)
-    printf("%f ",p[i]);
+    printf("%f ",static_cast<const double*>(p)[i]);
   printf("\n");
 }
+
+} // namespace original_cover_tree

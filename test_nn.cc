@@ -1,6 +1,8 @@
 #include "cover_tree.h"
+
+using namespace original_cover_tree;
 #include <limits.h>
-#include <values.h>
+#include <float.h>
 #include <stdint.h>
 #include <iostream>
 #include <time.h>
@@ -48,7 +50,7 @@ int main(int argc, char *argv[])
   gettimeofday(&parsed,NULL);
   //printf("parse in %f seconds\n",diff(parsed,start));
 
-  node top = batch_create(v);
+  node top = batch_create(v, original_cover_tree::distance);
   timeval created;
   //  clock_t created_clock = clock();
   gettimeofday(&created, NULL);
@@ -95,7 +97,7 @@ int main(int argc, char *argv[])
   v_array<v_array<point> > res;
   /*  for (int i = 0; i < v.index; i++) 
       k_nearest_neighbor(top,new_leaf(v[i]),res,k);      */
-  k_nearest_neighbor(top,top,res,k);
+  k_nearest_neighbor(top,top,res,k, original_cover_tree::distance);
   
   /*  printf("Printing results\n");
   for (int i = 0; i< res.index; i++)
@@ -112,7 +114,7 @@ int main(int argc, char *argv[])
   //printf("queried in %f seconds\n",diff(queried,created));
   //printf("%i distance queries\n",get_count());
   //qsort(v.elements, v.index,sizeof(point), compare);
-  int thresh=MAXINT;
+  int thresh=INT_MAX;
   if (1e10 / v.index< v.index)
     thresh = (int) 1e10 / v.index;
 
@@ -122,15 +124,15 @@ int main(int argc, char *argv[])
   v_array<v_array<point> > brute_neighbors;
   for (int i=0; i < res.index  && i < thresh; i++) {
     point this_point = res[i][0];
-    float upper_dist[k];
+    double upper_dist[k];
     point min_points[k];
     for (int j=0; j<k; j++)
       {
-	upper_dist[j] = MAXFLOAT;
+	upper_dist[j] = DBL_MAX;
 	min_points[j] = this_point;
       }
     for (int j=0; j < v.index; j++) {
-      float dist = distance (this_point, v[j], upper_dist[0]);
+      double dist = original_cover_tree::distance(this_point, v[j], upper_dist[0], NULL);
       if (dist < upper_dist[0]) {
 	int l=0;
 	for (;l<k-1; l++)
@@ -192,10 +194,10 @@ int main(int argc, char *argv[])
       {
 	int flag = 0;
 	point this_neighbor = brute_neighbors[i][j];
-	float brute_distance = distance (this_neighbor, this_point, MAXFLOAT);
+	double brute_distance = original_cover_tree::distance(this_neighbor, this_point, DBL_MAX, NULL);
 	for (int l = 1; l < res[i].index; l++)
 	  {
-	    if (brute_distance == distance(res[i][l],this_point,MAXFLOAT))
+	    if (brute_distance == original_cover_tree::distance(res[i][l],this_point,DBL_MAX, NULL))
 	      {
 		flag = 1;
 		break;
@@ -209,10 +211,16 @@ int main(int argc, char *argv[])
 	    printf("our_neighbors = \n");
 	    for (int l = 1; l < res[i].index; l++)
 	      {
-		printf("%f = distance, point = ",distance(res[i][l],this_point,MAXFLOAT));
+		printf("%f = distance, point = ",original_cover_tree::distance(res[i][l],this_point,DBL_MAX, NULL));
 		print(res[i][l]);
 	      }
 	  }
       }
   }
+  free_results(brute_neighbors);
+  free_results(res);
+  free_tree(top);
+  for (int i = 0; i < v.index; i++) free(const_cast<void*>(v[i]));
+  free(v.elements);
+  fclose(fd);
 }

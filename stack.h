@@ -1,4 +1,7 @@
+#pragma once
 #include <stdlib.h>
+
+namespace original_cover_tree {
 
 template<class T> class v_array{
  public:
@@ -35,3 +38,5 @@ template<class T> v_array<T> pop(v_array<v_array<T> > &stack)
   else
     return v_array<T>();
 }
+
+} // namespace original_cover_tree

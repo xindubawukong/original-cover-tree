@@ -1,0 +1,5 @@
+/build*/
+/knn
+/test_nn
+/cover_tree_test
+/*.o
